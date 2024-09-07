@@ -8,6 +8,7 @@ import { db } from "./firebase/firebase";
 import React, { useEffect, useState } from "react";
 import { Button } from "./components/ui/button";
 import { Plus, PlusCircle, X } from "lucide-react";
+import toast, {Toaster} from "react-hot-toast";
 
 export default function App() {
 
@@ -46,7 +47,7 @@ export default function App() {
   }
 
   checkCompany()
-  
+
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen)
   }
@@ -55,15 +56,32 @@ export default function App() {
 
     e.preventDefault()
 
-    if (companyName === '' || companyName === null) setError('Name cannot be null')
-    if (companyName.length > 45 || companyName.length < 1) setError('Name must contain 1-45 characters')
+    try {
 
-      const docRef = await addDoc(companies, {
-        id: crypto.randomUUID(),
-        name: companyName,
-        user: userPrimaryEmail,
-        created_at: serverTimestamp()  
-    });
+      
+      if (companyName === '' || companyName === null) {
+        setError('Name cannot be null');
+        throw new Error('Name cannot be null');
+      }
+      if (companyName.length > 45 || companyName.length < 1) {
+        setError('Name must contain 1-45 characters');
+        throw new Error('Name must contain 1-45 characters');
+      }
+
+      // await addDoc(companies, {
+      //     id: crypto.randomUUID(),
+      //     name: companyName,
+      //     user: userPrimaryEmail,
+      //     created_at: serverTimestamp()  
+      // });
+
+      toast.success('Company created successfully')
+
+    } catch (err) {
+      toast.error('We couldn`t create the company. Try later.')
+    } finally {
+      location.reload()
+    }
 
   }
 
@@ -88,6 +106,8 @@ export default function App() {
 
       <SignedIn>
 
+        <Toaster />
+
         {isModalOpen &&
 
           <div className="absolute w-full h-screen flex justify-center items-center bg-[#000000ad]">
@@ -99,11 +119,11 @@ export default function App() {
                 <Button variant='default' size='icon' onClick={toggleModal}><X size={20} /></Button>
               </div>
 
-              <form method="post" className="w-full flex flex-col items-center mt-3" onSubmit={handleSubmit}>
+              <form method="post" className="w-full flex flex-col items-center mt-2" onSubmit={handleSubmit}>
 
                 <div className="flex flex-col w-3/4 mb-2">
                   <label htmlFor="name">Name</label>
-                  <input type="text" name="name" id="name" placeholder="Company name" maxLength={45} required className="border border-gray-500 rounded-sm p-1 w-full" onChange={(e) => setCompanyName(e.target.value)}/>
+                  <input type="text" name="name" id="name" placeholder="Company name" maxLength={45} required className="border border-gray-500 rounded-sm p-1 w-full" onChange={(e) => setCompanyName(e.target.value)} />
                   {error &&
                     <p className="my-1 text-red-400">{error}</p>
                   }
